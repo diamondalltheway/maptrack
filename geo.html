@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<script>
+var options = {
+  enableHighAccuracy: false,
+  timeout: 60000,
+  maximumAge: 0
+};
+
+function success(pos) {
+  var crd = pos.coords;
+
+  alert('Your current position is:');
+  alert('Latitude : ' + crd.latitude);
+  alert('Longitude: ' + crd.longitude);
+  alert('More or less ' + crd.accuracy + ' meters.');
+};
+
+function error(err) {
+  alert('ERROR(' + err.code + '): ' + err.message);
+};
+
+navigator.geolocation.getCurrentPosition(success, error, options);
+</script>
+<body>
+
+<h1>My First Heading</h1>
+
+<p>My first paragraph.</p>
+
+</body>
+</html>
+

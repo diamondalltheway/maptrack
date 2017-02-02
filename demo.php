@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Dashboard</title>
+	<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.12.3/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.12.3/mapbox-gl.css' rel='stylesheet' />
+	<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v0.1.0/mapbox-gl-geocoder.js'></script>
+<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v0.1.0/mapbox-gl-geocoder.css' type='text/css' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+		#geocoder-container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    margin-top: 10px;
+}
+#geocoder-container > div {
+    min-width:50%;
+    margin-left:25%;
+}
+ #demoLabel {
+       background: #fff;
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    right: 10px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.4);
+    font-family: 'Open Sans', sans-serif;
+    padding: 12px;
+    }
+.logoutbtn{
+background: #fff;
+    position: absolute;
+    z-index: 1;
+text-decoration:none;
+padding:5px;
+color:black;
+}
+ #menu {
+    position: absolute;
+    background: #fff;
+    padding: 3px;
+    font-family: 'Open Sans', sans-serif;
+    right: 10px;
+    top: 61px;
+    }
+
+    </style>
+</head>
+<body>
+<a class ="logoutbtn" href ="logout.php">Log out</a>
+<div id="demoLabel">Demo</div>
+<div id='map'></div>
+<div id='menu'>
+    <input id='streets' type='radio' name='rtoggle' value='streets'>
+    <label for='streets'>streets</label>
+    <input id='light' type='radio' name='rtoggle' value='light'>
+    <label for='light'>light</label>
+    <input id='dark' type='radio' name='rtoggle' value='dark'>
+    <label for='dark'>dark</label>
+    <input id='satellite' type='radio' name='rtoggle' value='satellite'>
+    <label for='satellite'>satellite</label>
+</div>
+<div id='geocoder-container'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoidmlrYXNodGhlY29kZXIiLCJhIjoiY2lnZzQ5cm10N3Vza3UybTU5dXY4MjVhbyJ9.ZrKrD1ZqDiGe6pPcIP95XA';
+
+
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/light-v8', //stylesheet location
+    center: [ -95.47,30.15],
+    zoom: 11 // starting zoom
+});
+var geocoder = new mapboxgl.Geocoder({
+    container: 'geocoder-container' // Optional. Specify a unique container for the control to be added to.
+});
+
+map.addControl(geocoder);
+map.on('style.load', function() {
+   map.addSource("mapgeojsondata", {
+       "type": "geojson",
+       "data": "geojsons/woodlandsmonocle.geojson"
+   });
+
+   // Once you have a datasource defined, you need to add a layer from that data source to the map.
+   // We could, for example, add only earthquakes magnitude 4.0+. Here we just tell it
+   // to take all of the data and style it as a circle.
+   map.addLayer({
+     "id": "mapgeojsonlayer",
+     "interactive":true,	 // An id for this layer
+     "type": "circle", // As a point layer, we need style a symbol for each point.
+     "source": "mapgeojsondata", // The source layer we defined above
+     "paint": {
+         "circle-radius": 6,
+         "circle-color": "#D93A92"
+     }
+   });
+});
+map.on('click', function (e) {
+    // Use featuresAt to get features within a given radius of the click event
+    // Use layer option to avoid getting results from other layers
+    map.featuresAt(e.point, {layer: 'mapgeojsonlayer', radius: 10, includeGeometry: true}, function (err, features) {
+        if (err) throw err;
+        // if there are features within the given radius of the click event,
+        // fly to the location of the click event
+        if (features.length) {
+            // Get coordinates from the symbol and center the map on those coordinates
+            map.flyTo({center: features[0].geometry.coordinates});
+        }
+    });
+});
+
+// Use the same approach as above to indicate that the symbols are clickable
+// by changing the cursor style to 'pointer'.
+map.on('mousemove', function (e) {
+    map.featuresAt(e.point, {layer: 'mapgeojsonlayer', radius: 10}, function (err, features) {
+        if (err) throw err;
+        map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+    });
+});
+var layerList = document.getElementById('menu');
+var inputs = layerList.getElementsByTagName('input');
+
+function switchLayer(layer) {
+    var layerId = layer.target.id;
+    map.setStyle('mapbox://styles/mapbox/' + layerId + '-v8');
+}
+
+for (var i = 0; i < inputs.length; i++) {
+    inputs[i].onclick = switchLayer;
+}
+
+</script>
+
+</body>
+</html>
